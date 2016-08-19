@@ -9,6 +9,6 @@ Usage
 =====
 
  - Copy the python script to a folder on your $PATH [optional]
- - Run the script.
- ` $ pomodoro //this will launch a standard timing patter (25min work and 5min break) `
+ - Run the script.<br>
+ ` $ pomodoro //this will launch a standard timing patter (25min work and 5min break) `<br>
  ` $ pomodoro 15 //you can specify a custom work time `
