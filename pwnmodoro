@@ -1,0 +1,242 @@
+#!/bin/python
+
+from time import sleep
+from random import choice
+
+import curses
+import sys
+
+
+
+imagebank = ["""
+               \                                     
+               |.       /                            
+   /|         ###.     /                             
+  | \         `###._                                 
+ /   \        / /|\ \     ___                        
+/     `-._    | ~~   |                               
+| ,-._    `|   `\___/                                
+\/  | `-.__/            \         _     ,-.          
+    /  /      /          \       / |   /  /          
+ |\/  /\     /                  /  /  /  /   _       
+ \ \_/ |        __             |   `-"   `.-" >      
+.-`    .      ,'  `-.         /           _,-"       
+`-.     `.    \   () `.   _,-'         ,-'           
+ /` _     `-._ \ () /"\:-'              `-.._        
+_/-/ `-._     `-+._(_ /     _,--.__,--,_.--._>       
+\_/      `.        `-'   _."                         
+           `\           |                            
+             \          \     WHAT                   
+              |  %i:%s   |                           
+              \           \                          
+               \           `.                        
+                |    /`=._   \     THE               
+                 \   \    `\  \                      
+                  |   \      \/                      
+                   `\  \_     A.                     
+                     `\ _\    Hh.       FUCK         
+                       ` A,   `HHh.                  
+                         HH.   `HHHh                 
+                         qHHb   `HHH.                
+                          qHH.   HHHh                
+                           qHHb.dHHH.                
+                            "HHHHHHHHh               
+                             ,HHHHHHHH.        dHD   
+                            ,dHHHHHHHHHh.    ,dP     
+                          ,dHHHHHHHHHHHHHHHHHHHHHHHHP
+                         dHHP  `HHHH"   `HHHHHHHb.   
+                    db  dHHP   dHHH'     :HH   `Hh.  
+                    `HHHHH'   `HHHP       HH.   `Hh  
+                      HHHH'     `"'        `HD     ` 
+                      `HHHh.                `        
+                          `Hh.,.                     
+                            `HHHH                    
+                       \.  ,dHHH'                    
+                        HHHHHHH'                     
+                         HHHHH'                      
+                          "HHH                       
+                      S-v   "V                       
+""",
+"""
+                                                     .....
+                                                    ..:-:....
+                                                   ...:%+:::-..
+                                                 .....:::**-:...
+                                               .....::::**=-::...
+                                            .......:=#=#@##+-*:....
+                                         .........:::=#######-::......
+                                       .......::::::-+#######=:::........
+                                    .....:-==-:::=---=*#####=--::#::::::=..
+                                  ......::+*#*#-=#################-::-:-=:..
+                         %i:%s .........:::########################*####==..
+                      ................:::--=%###########################::...
+                   .................:::@##@###########################@-::...
+                 ....:-::::::::::::::::-=###############################-:::.
+                ....::%-:@::==::::::::-@##################################%:.
+               .....:::-+##==##+*=-::-###################################-:..
+            .......::::=*##########===####################################+:.
+        ........:::::-+#############@+###################################-:..
+    ...........::-=-==%##################################################:...
+ ....:-::::::::::=*#####################################################::...
+:::-::#-:-=-=-=%+@####################################################-::....
+ .....:....::::::-+#####################################################::...
+     ..........::=---=%##############@###################################::..
+         ........::::++*############*+###################################-:..
+             ......::::**##########=-=####################################+:.
+               .....:::-**#==*#=#-:::-+##################################-::.
+                 ...:==:::::-=::::::::=###################################@*.
+                  ...:=::...::::.::::::-*###############################-:::.
+                   ..................::+#@+###########################+-::...
+                        ..............::::-=############################*:...
+                                ........:::########################=%#@#+:..
+                                  .......:-#*==-=##############+##-::::-=:..
+                                     ....:::--::::::-=######=-::::::...::..
+                                       .........::::=@#######=:::........
+                                          ........:::+######%=::.....
+                                             ......::=-=@##=:::....
+                                                .....:::-*=:::...
+                                                  ....::-=@=:...
+                                                   ...::%::.:..
+                                                    ..:-:...
+                                                      ...
+""",
+"""
+                           _ooOoo_
+                          o8888888o
+                          88     88
+                          (| -_- |)
+                          O\  =  /O
+                       ____/`---'\____
+                     .'  \\|     |//  `.
+                    /  \\|||  :  |||//  \\
+                   /  _||||| -:- |||||_  \\
+                   |   | \\\\  -  /'| |   |
+                   | \\_|  `\\`---'//  |_/ |
+                   \  .-\__ `-. -'__/-.  /
+                 ___`. .'  /--.--\  `. .'___
+              ."" '<  `.___\_<|>_/___.' _> \\"".
+             | | :  `- \`. ;`. _/; .'/ /  .' ; |
+             \  \ `-.   \_\_`. _.'_/_/  -' _.' /    %i:%s
+   ===========`-.`___`-.__\ \___  /__.-'_.'_.-'================
+                           `=--=-'                    
+""",
+"""
+                                                                      ..;===+.
+                                                                  .:=iiiiii=+=
+                                                               .=i))=;::+)i=+,
+                                                            ,=i);)I)))I):=i=;
+                                                         .=i==))))ii)))I:i++
+                          %i:%s                        +)+))iiiiiiii))I=i+:'
+                                  .,:;;++++++;:,.       )iii+:::;iii))+i='
+                               .:;++=iiiiiiiiii=++;.    =::,,,:::=i));=+'
+                             ,;+==ii)))))))))))ii==+;,      ,,,:=i))+=:
+                           ,;+=ii))))))IIIIII))))ii===;.    ,,:=i)=i+
+                          ;+=ii)))IIIIITIIIIII))))iiii=+,   ,:=));=,
+                        ,+=i))IIIIIITTTTTITIIIIII)))I)i=+,,:+i)=i+
+                       ,+i))IIIIIITTTTTTTTTTTTI))IIII))i=::i))i='
+                      ,=i))IIIIITLLTTTTTTTTTTIITTTTIII)+;+i)+i`
+                      =i))IIITTLTLTTTTTTTTTIITTLLTTTII+:i)ii:'
+                     +i))IITTTLLLTTTTTTTTTTTTLLLTTTT+:i)))=,
+                     =))ITTTTTTTTTTTLTTTTTTLLLLLLTi:=)IIiii;
+                    .i)IIITTTTTTTTLTTTITLLLLLLLT);=)I)))))i;
+                    :))IIITTTTTLTTTTTTLLHLLLLL);=)II)IIIIi=:
+                    :i)IIITTTTTTTTTLLLHLLHLL)+=)II)ITTTI)i=
+                    .i)IIITTTTITTLLLHHLLLL);=)II)ITTTTII)i+
+                    =i)IIIIIITTLLLLLLHLL=:i)II)TTTTTTIII)i'
+                  +i)i)))IITTLLLLLLLLT=:i)II)TTTTLTTIII)i;
+                +ii)i:)IITTLLTLLLLT=;+i)I)ITTTTLTTTII))i;
+               =;)i=:,=)ITTTTLTTI=:i))I)TTTLLLTTTTTII)i;
+             +i)ii::,  +)IIITI+:+i)I))TTTTLLTTTTTII))=,
+           :=;)i=:,,    ,i++::i))I)ITTTTTTTTTTIIII)=+'
+         .+ii)i=::,,   ,,::=i)))iIITTTTTTTTIIIII)=+
+        ,==)ii=;:,,,,:::=ii)i)iIIIITIIITIIII))i+:'
+       +=:))i==;:::;=iii)+)=  `:i)))IIIII)ii+'
+     .+=:))iiiiiiii)))+ii;
+    .+=;))iiiiii)));ii+
+   .+=i:)))))))=+ii+
+  .;==i+::::=)i=;
+  ,+==iiiiii+,
+  `+=+++;`
+"""
+]
+
+IMG = choice(imagebank).split('\n')
+
+
+curses.setupterm()
+graphictimer = curses.initscr()
+graphictimer.refresh()
+graphictimer.nodelay(1)
+
+def TIMER(stdscr, MINUTES, IMG, COLOR):
+    PAUSED = 0
+    PAUSE_BUTTONS = ['p', ' ', 'P']
+    PAUSE_BUTTONS = [ord(x) for x in PAUSE_BUTTONS]
+    
+    QUIT_BUTTONS = ['c', 'q', 'C', 'Q']
+    QUIT_BUTTONS = [ord(x) for x in QUIT_BUTTONS]
+    
+    Welcome = """ 
+starting tomato timer;; 
+                     for %i minutes.
+%s
+%sp or spacebar to pause;
+%sq or c to quit;
+""" % (MINUTES,
+       "\n"*16, " "*28," "*32)
+       
+
+
+    curses.start_color()
+    curses.use_default_colors()
+
+    for i in range(0, curses.COLORS):
+        curses.init_pair(i + 1, i, -1)
+        
+    graphictimer.addstr(12,12, Welcome, curses.color_pair(4))
+    graphictimer.refresh()
+    for M in range(MINUTES-1, -1, -1):
+        seconds = 60
+        while seconds:
+            sleep(1)
+
+            KeyPressed = graphictimer.getch()
+            if KeyPressed in PAUSE_BUTTONS:
+                PAUSED = 1-PAUSED
+            elif KeyPressed in QUIT_BUTTONS:
+                exit()
+                
+            if PAUSED:
+                continue
+            seconds -=1
+            if not seconds % 1:
+                screenH, screenW = graphictimer.getmaxyx()
+                SHOW = "%i:%s" % (M, str(seconds).zfill(2))
+                graphictimer.clear()
+
+                for K in range(len(IMG)):
+                    imageline = IMG[K][:screenW]
+                    if "%i:%s" in IMG[K]:
+                        #print(z)
+                        imageline = imageline % (M, str(seconds).zfill(2) )
+
+                    if K < screenH:
+                        graphictimer.addstr(K, 0, imageline, curses.color_pair(COLOR))
+                graphictimer.refresh()
+                # print (SHOW )
+
+
+    print("*** TIME'S UP ***")
+    
+# customized timer-values run.
+if len(sys.argv) > 1:
+    for k in range(1, len(sys.argv)):
+        try:
+            MIN = int(sys.argv[k])
+            curses.wrapper(TIMER, MIN, IMG, 2)
+        except:
+            pass
+# standard run.
+else:            
+    curses.wrapper(TIMER, 25, IMG, 2)
+    curses.wrapper(TIMER, 5, IMG, 3)
