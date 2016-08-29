@@ -168,37 +168,22 @@ graphictimer = curses.initscr()
 graphictimer.refresh()
 graphictimer.nodelay(1)
 
+PAUSED = 0
+PAUSE_BUTTONS = ['p', ' ', 'P']
+PAUSE_BUTTONS = [ord(x) for x in PAUSE_BUTTONS]
+
+QUIT_BUTTONS = ['c', 'q', 'C', 'Q']
+QUIT_BUTTONS = [ord(x) for x in QUIT_BUTTONS]
+
 def TIMER(stdscr, MINUTES, IMG, COLOR):
-    PAUSED = 0
-    PAUSE_BUTTONS = ['p', ' ', 'P']
-    PAUSE_BUTTONS = [ord(x) for x in PAUSE_BUTTONS]
-    
-    QUIT_BUTTONS = ['c', 'q', 'C', 'Q']
-    QUIT_BUTTONS = [ord(x) for x in QUIT_BUTTONS]
-    
-    Welcome = """ 
-starting tomato timer;; 
-                     for %i minutes.
-%s
-%sp or spacebar to pause;
-%sq or c to quit;
-""" % (MINUTES,
-       "\n"*16, " "*28," "*32)
-       
-
-
-    curses.start_color()
-    curses.use_default_colors()
-
-    for i in range(0, curses.COLORS):
-        curses.init_pair(i + 1, i, -1)
-        
-    graphictimer.addstr(12,12, Welcome, curses.color_pair(4))
-    graphictimer.refresh()
+    global PAUSED
     for M in range(MINUTES-1, -1, -1):
         seconds = 60
         while seconds:
-            sleep(1)
+            try:
+                sleep(1)
+            except KeyboardInterrupt:
+                exit()
 
             KeyPressed = graphictimer.getch()
             if KeyPressed in PAUSE_BUTTONS:
@@ -227,16 +212,49 @@ starting tomato timer;;
 
 
     print("*** TIME'S UP ***")
+
+
+
+def Queuer(times):
+    Welcome = """ 
+starting tomato timer;; 
+                     for %i minutes.
+%s
+%sp or spacebar to pause;
+%sq or c to quit;
+""" % (times[0],
+       "\n"*16, " "*28," "*32)
+       
+
+
+    curses.start_color()
+    curses.use_default_colors()
+
+    for i in range(0, curses.COLORS):
+        curses.init_pair(i + 1, i, -1)
+
+    try:        
+        graphictimer.addstr(12,12, Welcome, curses.color_pair(4))
+    except:
+        pass
+    graphictimer.refresh()
+
+    COLORS=[2,3] #Red and Green
+    for I in range(len(times)):
+        curses.wrapper(TIMER, times[I], IMG, COLORS[I%2]) 
+
     
 # customized timer-values run.
 if len(sys.argv) > 1:
-    for k in range(1, len(sys.argv)):
-        try:
-            MIN = int(sys.argv[k])
-            curses.wrapper(TIMER, MIN, IMG, 2)
-        except:
-            pass
+    try:
+        T = [ int(G) for G in sys.argv[1:] ]
+        Queuer(T)
+    except:
+        if "r" in sys.argv:
+            Queuer([15,5])
+            exit()
+    
 # standard run.
 else:            
-    curses.wrapper(TIMER, 25, IMG, 2)
-    curses.wrapper(TIMER, 5, IMG, 3)
+    Queuer([25,5])
+
