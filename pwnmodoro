@@ -199,14 +199,23 @@ def TIMER(stdscr, MINUTES, IMG, COLOR):
                 SHOW = "%i:%s" % (M, str(seconds).zfill(2))
                 graphictimer.clear()
 
-                for K in range(len(IMG)):
+                if len(IMG) > screenH:
+                    center = len(IMG)//2
+                    V = screenH//2
+                    LIM=[center-V, center+V]
+                else:    
+                    LIM = [0, len(IMG)]
+                    
+                LINE=0
+                for K in range(LIM[0], LIM[1]):
                     imageline = IMG[K][:screenW]
                     if "%i:%s" in IMG[K]:
                         #print(z)
                         imageline = imageline % (M, str(seconds).zfill(2) )
 
-                    if K < screenH:
-                        graphictimer.addstr(K, 0, imageline, curses.color_pair(COLOR))
+                    if K - LIM[0] <= screenH:
+                        graphictimer.addstr(LINE, 0, imageline, curses.color_pair(COLOR))
+                        LINE+=1
                 graphictimer.refresh()
                 # print (SHOW )
 
