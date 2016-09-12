@@ -224,7 +224,7 @@ def TIMER(stdscr, MINUTES, IMG, COLOR):
 
 
 
-def Queuer(times):
+def TimerQueuer(times):
     Welcome = """ 
 starting tomato timer;; 
                      for %i minutes.
@@ -257,13 +257,13 @@ starting tomato timer;;
 if len(sys.argv) > 1:
     try:
         T = [ int(G) for G in sys.argv[1:] ]
-        Queuer(T)
+        TimerQueuer(T)
     except:
         if "r" in sys.argv:
-            Queuer([15,5])
+            TimerQueuer([15,5])
             exit()
     
 # standard run.
 else:            
-    Queuer([25,5])
+    TimerQueuer([25,5])
 
