@@ -214,7 +214,10 @@ def TIMER(stdscr, MINUTES, IMG, COLOR):
                         imageline = imageline % (M, str(seconds).zfill(2) )
 
                     if K - LIM[0] <= screenH:
-                        graphictimer.addstr(LINE, 0, imageline, curses.color_pair(COLOR))
+                        try:
+                            graphictimer.addstr(LINE, 0, imageline, curses.color_pair(COLOR))
+                        except:
+                            pass
                         LINE+=1
                 graphictimer.refresh()
                 # print (SHOW )
