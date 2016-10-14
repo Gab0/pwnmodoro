@@ -180,6 +180,7 @@ def TIMER(stdscr, MINUTES, IMG, COLOR):
     for M in range(MINUTES-1, -1, -1):
         seconds = 60
         while seconds:
+            JustPaused = False
             try:
                 sleep(1)
             except KeyboardInterrupt:
@@ -188,11 +189,12 @@ def TIMER(stdscr, MINUTES, IMG, COLOR):
             KeyPressed = graphictimer.getch()
             if KeyPressed in PAUSE_BUTTONS:
                 PAUSED = 1-PAUSED
+                JustPaused = 1
             elif KeyPressed in QUIT_BUTTONS:
                 exit()
-                
-            if PAUSED:
+            if PAUSED and not JustPaused:
                 continue
+                
             seconds -=1
             if not seconds % 1:
                 screenH, screenW = graphictimer.getmaxyx()
@@ -215,7 +217,8 @@ def TIMER(stdscr, MINUTES, IMG, COLOR):
 
                     if K - LIM[0] <= screenH:
                         try:
-                            graphictimer.addstr(LINE, 0, imageline, curses.color_pair(COLOR))
+                            _color = 6 if PAUSED else COLOR
+                            graphictimer.addstr(LINE, 0, imageline, curses.color_pair(_color))
                         except:
                             pass
                         LINE+=1
