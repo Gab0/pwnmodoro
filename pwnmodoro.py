@@ -6,7 +6,6 @@ import curses
 from ASCII_ART import *
 import sys
 
-
 def detectNumberSplits(NB):
     W = NB.split('\n')
     W = [x for x in W if x]
@@ -19,16 +18,17 @@ def detectNumberSplits(NB):
                     G=False
 
             except:
-                print("err "+str(x))
+                pass
+                #print("err "+str(x))
 
         if G:
             SEPP.append(x)
-    print(SEPP)
-    if SEPP[0] > 5:
+    if SEPP[0] > 3:
         SEPP=[0]+SEPP
+    SEPP += [len(W[0])]
     MAP =[]
     for A in range(len(SEPP)-1):
-        if SEPP[A+1] - SEPP[A] > 3:
+        if SEPP[A+1] - SEPP[A] > 2:
             MAP.append([SEPP[A], SEPP[A+1]])
     return MAP
 
@@ -37,14 +37,35 @@ def constructNumbers(NB, MAP):
     W = NB.split('\n')
     W = [x for x in W if x]
     for K in range(len(MAP)):
-        print(MAP[K][0])
-        print(MAP[K][1])
         N = [ x[MAP[K][0]:MAP[K][1]] for x in W]
         Numbers.append(N)
-    # numberbank input should be a great panel written "0123456789:" in ASCII;
-    for C in Numbers:
-        S(C)
+    # numberbank input should be a great panel,
+    # written "0123456789:" in ASCII;
+    # a full column of spaces should stand between each
+    # number!
+    
+    #for C in Numbers:
+    #    S(C)
+    #numbers = ['\n'.join(x) for x in Numbers]
     return Numbers
+
+def mountASCIIClock(NB, TIME="12:13"):
+    MOUNT = ["" for x in range(len(NB[0])) ]
+    for DIG in TIME:
+        try:
+            DIG=int(DIG)
+        except:
+            DIG=10
+        for W in range(len(NB[DIG])):
+            num=NB[DIG]
+            MOUNT[W] += num[W]
+
+
+    #return '\n'.join(MOUNT)
+    return MOUNT
+
+
+
 
 def S(q):
     for x in q:
@@ -55,10 +76,7 @@ def fix():
     subprocess.call(['stty', 'sane'])
 
     
-
-
 IMG = choice(imagebank).split('\n')
-
 
 curses.setupterm()
 graphictimer = curses.initscr()
@@ -72,8 +90,12 @@ PAUSE_BUTTONS = [ord(x) for x in PAUSE_BUTTONS]
 QUIT_BUTTONS = ['c', 'q', 'C', 'Q']
 QUIT_BUTTONS = [ord(x) for x in QUIT_BUTTONS]
 
-def TIMER(stdscr, MINUTES, IMG, COLOR):
+def TIMER(stdscr, MINUTES, IMG, COLOR, BigClockMode=True):
     global PAUSED
+    if BigClockMode:
+        NumberKit = choice(numberbank)
+        MAP = detectNumberSplits(NumberKit)
+        NUMB = constructNumbers(NumberKit, MAP)
     for M in range(MINUTES-1, -1, -1):
         seconds = 60
         while seconds:
@@ -97,15 +119,23 @@ def TIMER(stdscr, MINUTES, IMG, COLOR):
                 screenH, screenW = graphictimer.getmaxyx()
                 SHOW = "%i:%s" % (M, str(seconds).zfill(2))
                 graphictimer.clear()
+                
+                if BigClockMode:
+                    IMG = mountASCIIClock(NUMB, TIME=SHOW)
 
+                center = len(IMG)//2
                 if len(IMG) > screenH:
-                    center = len(IMG)//2
                     V = screenH//2
                     LIM=[center-V, center+V]
-                else:    
+                    centerizeH=0
+                    centerizeW=0
+                else:
+                    centerizeH = screenH//3
+                    centerizeW = screenW//7
                     LIM = [0, len(IMG)]
                     
-                LINE=0
+                    
+                LINE=centerizeH
                 for K in range(LIM[0], LIM[1]):
                     imageline = IMG[K][:screenW]
                     if "%i:%s" in IMG[K]:
@@ -115,7 +145,7 @@ def TIMER(stdscr, MINUTES, IMG, COLOR):
                     if K - LIM[0] <= screenH:
                         try:
                             _color = 6 if PAUSED else COLOR
-                            graphictimer.addstr(LINE, 0,
+                            graphictimer.addstr(LINE, centerizeW,
                                     imageline, curses.color_pair(_color))
                         except:
                             pass
@@ -157,7 +187,6 @@ starting tomato timer;;
         curses.wrapper(TIMER, times[I], IMG, COLORS[I%2]) 
 
 if __name__ == '__main__':
-
     # customized timer-values run.
     if len(sys.argv) > 1:
         try:
