@@ -7,6 +7,18 @@ import curses
 import sys
 
 
+numberbank = """
+   _                  _             _                 _                  _______             _          _               _               _                _                
+  / /\              /\ \          /\ \            _  /\ \               / ___  /\          /\ \       / /\            / /\            / /\             / /\          _    
+ / /  \            /  \ \        /  \ \          /\_\\ \ \             / /\__\ \ \        /  \ \     / /  \          / /  \          / /  \           / /  \        /\_\  
+/_/ /\ \          / /\ \ \      / /\ \ \        / / / \ \ \           / / /   \_\/       / /\ \_\   / / /\ \        / / /\ \        / / /\ \         / / /\ \       \/_/  
+\_\/\ \ \         \/_/\ \ \    / / /\ \ \      / / /   \ \ \         / / /              / / /\/_/  / / /\ \ \      /_/ /\ \ \      /_/ /\ \ \       / / /\ \ \            
+     \ \ \            / / /    \/_//_\ \ \     \ \ \____\ \ \        \ \ \             / /_/_     /_/ /  \ \ \     \ \ \_\ \ \     \ \ \_\ \ \     /_/ /  \ \ \           
+      \ \ \          / / /       __\___ \ \     \ \________\ \        \ \ \           / /___/\    \_\/    \ \ \     \ \/__\ \ \     \ \/__\ \ \    \ \ \   \ \ \          
+       \ \ \        / / /  _    / /\   \ \ \     \/________/\ \        \ \ \         / /\__ \ \            \ \ \     \_____\ \ \     \_____\ \ \    \ \ \   \ \ \     _   
+      __\ \ \___   / / /_/\_\  / /_/____\ \ \              \ \ \   ____/ / /        / / /__\ \ \            \ \ \     \ \ \_\ \ \           \ \ \    \ \ \___\ \ \  /_/\  
+     /___\_\/__/\ / /_____/ / /__________\ \ \              \ \_\ /_____/ /        / / /____\ \ \            \ \ \     \ \___\ \ \           \ \ \    \ \/____\ \ \ \_\/  
+     \_________\/ \________/  \_____________\/               \/_/ \_____\/         \/__________\/             \_\/      \_______\/            \_\/     \_________\/       """
 
 imagebank = ["""
                \                                     
@@ -218,7 +230,8 @@ def TIMER(stdscr, MINUTES, IMG, COLOR):
                     if K - LIM[0] <= screenH:
                         try:
                             _color = 6 if PAUSED else COLOR
-                            graphictimer.addstr(LINE, 0, imageline, curses.color_pair(_color))
+                            graphictimer.addstr(LINE, 0,
+                                    imageline, curses.color_pair(_color))
                         except:
                             pass
                         LINE+=1
@@ -258,18 +271,18 @@ starting tomato timer;;
     for I in range(len(times)):
         curses.wrapper(TIMER, times[I], IMG, COLORS[I%2]) 
 
-    
-# customized timer-values run.
-if len(sys.argv) > 1:
-    try:
-        T = [ int(G) for G in sys.argv[1:] ]
-        TimerQueuer(T)
-    except:
-        if "r" in sys.argv:
-            TimerQueuer([15,5])
-            exit()
-    
-# standard run.
-else:            
-    TimerQueuer([25,5])
+if __name__ == '__main__':
+    # customized timer-values run.
+    if len(sys.argv) > 1:
+        try:
+            T = [ int(G) for G in sys.argv[1:] ]
+            TimerQueuer(T)
+        except:
+            if "r" in sys.argv:
+                TimerQueuer([15,5])
+                exit()
+
+    # standard run.
+    else:            
+        TimerQueuer([25,5])
 
