@@ -64,9 +64,13 @@ def mountASCIIClock(NB, TIME="12:13"):
     #return '\n'.join(MOUNT)
     return MOUNT
 
-
-
-
+def selectMinimalWidthAmongFonts(nbBANK, screenWidth):
+    nblens = [0] + list(nbBANK.keys())
+    nblens.sort()
+    for w in range(1, len(nblens)):
+        if screenWidth < nblens[w]:
+            return nblens[w-1]
+    return nblens[-1]
 def S(q):
     for x in q:
         print(x)
@@ -74,7 +78,6 @@ def S(q):
 def fix():
     import subprocess
     subprocess.call(['stty', 'sane'])
-
     
 IMG = choice(imagebank).split('\n')
 
@@ -93,9 +96,15 @@ QUIT_BUTTONS = [ord(x) for x in QUIT_BUTTONS]
 def TIMER(stdscr, MINUTES, IMG, COLOR, BigClockMode=True):
     global PAUSED
     if BigClockMode:
-        NumberKit = choice(numberbank)
-        MAP = detectNumberSplits(NumberKit)
-        NUMB = constructNumbers(NumberKit, MAP)
+        NUMBs = {} #final structure:  {<min width>: NUMBERLIST, ... }
+        for nBANK in numberbank:
+            NumberKit = nBANK
+            MAP = detectNumberSplits(NumberKit)
+            NUMB = constructNumbers(NumberKit, MAP)
+            # length of four digits and ':' of a font.
+            pxWidth = len(NUMB[0][0]) * 4 + len(NUMB[-1][0]) 
+            NUMBs.update({pxWidth: NUMB})
+            
     for M in range(MINUTES-1, -1, -1):
         seconds = 60
         while seconds:
@@ -114,49 +123,92 @@ def TIMER(stdscr, MINUTES, IMG, COLOR, BigClockMode=True):
             if PAUSED and not JustPaused:
                 continue
                 
-            seconds -=1
-            if not seconds % 1:
-                screenH, screenW = graphictimer.getmaxyx()
-                SHOW = "%i:%s" % (M, str(seconds).zfill(2))
-                graphictimer.clear()
-                
-                if BigClockMode:
-                    IMG = mountASCIIClock(NUMB, TIME=SHOW)
 
+            seconds -=1
+            screenH, screenW = graphictimer.getmaxyx()
+            if BigClockMode:
+                SHOW = "%i:%s" % (M, str(seconds).zfill(2))
+                nbSIZE = selectMinimalWidthAmongFonts(NUMBs, screenW)
+                if screenW > 5:
+                    if nbSIZE:
+                        IMG = mountASCIIClock(NUMBs[nbSIZE], TIME=SHOW)
+                    else:
+                        IMG = [SHOW]
+                else:
+                    IMG = SHOW
+                    
+            IMGsize = len(IMG[0]), len(IMG)
+            
+            # UPDATE SCREEN ROUTINES;
+            if not seconds % 1:
+                graphictimer.clear()
+                    
+                # CENTER IMAGE ON TERMINAL WINDOW;
                 center = len(IMG)//2
                 if len(IMG) > screenH:
                     V = screenH//2
                     LIM=[center-V, center+V]
-                    centerizeH=0
-                    centerizeW=0
+                    centerize= 0,0
+
                 else:
-                    centerizeH = screenH//3
-                    centerizeW = screenW//7
+                    centerize = (screenW-IMGsize[0])//2,\
+                                (screenH-IMGsize[1])//2
                     LIM = [0, len(IMG)]
                     
-                    
-                LINE=centerizeH
-                for K in range(LIM[0], LIM[1]):
-                    imageline = IMG[K][:screenW]
-                    if "%i:%s" in IMG[K]:
-                        #print(z)
-                        imageline = imageline % (M, str(seconds).zfill(2) )
+                # DRAW METHOD;
+                drawImageStandard(graphictimer, IMG, LIM,
+                                  [screenW, screenH], centerize, COLOR)
+                
+    ''' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ OLD METHOD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    LINE=centerizeH
+    for K in range(LIM[0], LIM[1]):
+        imageline = IMG[K][:screenW-centerizeW]
+        if "%i:%s" in IMG[K]:
+            imageline = imageline % (M, str(seconds).zfill(2) )
 
-                    if K - LIM[0] <= screenH:
-                        try:
-                            _color = 6 if PAUSED else COLOR
-                            graphictimer.addstr(LINE, centerizeW,
-                                    imageline, curses.color_pair(_color))
-                        except:
-                            pass
-                        LINE+=1
-                graphictimer.refresh()
-                # print (SHOW )
-
+        if K - LIM[0] <= screenH:
+            try:
+                _color = 6 if PAUSED else COLOR
+                graphictimer.addstr(LINE, centerizeW,
+                        imageline, curses.color_pair(_color))
+            except:
+                for S in range(len(imageline)): # PANIC ROTATE 90ºCCW ;}
+                    try:
+                        graphictimer.addstr(centerizeW+K, centerizeH+S,
+                                        imageline[S], curses.color_pair(6))
+                    except:
+                        pass
+                pass
+            LINE+=1
+    graphictimer.refresh()
+    # print (SHOW )
+    '''
 
     print("*** TIME'S UP ***")
 
+def drawImageStandard(SCREEN, IMAGE, lineInterval,
+                      screenSize, offset, color):
+    LINE = offset[1]
+    for K in range(*lineInterval):
+        imageline = IMAGE[K][:screenSize[0]-offset[0]]
+        if "%i:%s" in IMAGE[K]: #DEPRECATED
+            pass
+            #imageline = imageline % (M, str(seconds).zfill(2) )
 
+        if K - lineInterval[0] <= screenSize[1]:
+            try:
+                _color = 6 if PAUSED else color
+                SCREEN.addstr(LINE, offset[0],#<????
+                        imageline, curses.color_pair(_color))
+            except:
+                pass
+
+            LINE+=1
+    SCREEN.refresh()   
+
+def drawImageSkewed():
+    # TODO; ROTATE 90ºCCW/VERTICAL CLOCK.
+    pass
 
 def TimerQueuer(times):
     Welcome = """ 
@@ -167,8 +219,6 @@ starting tomato timer;;
 %sq or c to quit;
 """ % (times[0],
        "\n"*16, " "*28," "*32)
-       
-
 
     curses.start_color()
     curses.use_default_colors()
