@@ -1,4 +1,4 @@
-#!/bin/python
+#!python3
 
 from time import sleep
 from random import choice
